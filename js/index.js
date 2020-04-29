@@ -8,6 +8,7 @@ var WEEK_RANGE_SELECTED_3 = "0";
 var MONTH_RANGE_SELECTED_2 = "0";
 var YEAR_RANGE_SELECTED_2 = "0";
 var YEAR_RANGE_SELECTED_1 = "0";
+var HOLIDAY_SELECTED = "0";
 
 $(document).ready(function(){
     (async () => {
@@ -96,6 +97,24 @@ $(document).ready(function(){
             getTopFiveItemsByYear(DATA, selectedYear);
         }
         YEAR_RANGE_SELECTED_1 = selectedYear;
+    });
+
+    $("#holiday-selector").change(function(){
+        var selectedHoliday = $(this).children("option:selected").val();
+        if(selectedHoliday == "0"){
+            $("#holiday-year-selector").prop('disabled', true);
+        }
+        else{
+            $("#holiday-year-selector").prop('disabled', false);
+        }
+        HOLIDAY_SELECTED = selectedHoliday;
+    });
+
+    $("#holiday-year-selector").change(function(){
+        var selectedHolidayYear = $(this).children("option:selected").val();
+        if(selectedHolidayYear != "0"){
+            getTopFiveItemsByHoliday(DATA, HOLIDAY_SELECTED, selectedHolidayYear);
+        }
     });
 
 });
@@ -350,6 +369,53 @@ function getTopFiveItemsByWeek(data, year, month, week){
     let colour = '#744743';
     drawBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-week svg", option: mostPopularOptions, colour: colour});
     console.log();
+}
+
+function getTopFiveItemsByHoliday(data, holiday, holidayYear){
+    var itemCountMap = {};
+    ITEMS.forEach((item) => {
+        itemCountMap[item] = 0;
+    });
+    Object.keys(itemCountMap).forEach((item) => {
+        data.forEach((record) => {
+            let recordDate = record.date;
+            let recordYear = record.date.split("-")[0];
+            let isValidHoliday = isHolidayValid(recordDate, holiday);
+            if(isValidHoliday && recordYear == holidayYear && record.item == item){
+                itemCountMap[item] = itemCountMap[item] + parseInt(record.quantity);
+            }
+        });
+    });
+
+    var countValues = [];
+    for(var itemName in itemCountMap){
+        countValues.push(itemCountMap[itemName]);
+    }
+    countValues.sort((a, b) => b - a);//sort the counts in descending order
+    var topFiveMostPopular = extractTopNProperties(itemCountMap,countValues,5);
+
+    const mostPopularOptions = {
+        format: 'd',
+        yLabel: 'Quantity',
+        title: 'Most Popular Items By Holiday',
+    };
+    let colour = '#747474';
+    drawBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-holiday svg", option: mostPopularOptions, colour: colour});
+    console.log();
+}
+
+function isHolidayValid(date, holidayName){
+    if(holidayName == "easter"){
+        let day = parseInt(date.split("-")[2]);
+        let month = parseInt(date.split("-")[1]);
+        if((month == 3 && day > 20) || (month == 4 && day < 16)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    return false;
 }
 
 function getWeekFromDay(day){

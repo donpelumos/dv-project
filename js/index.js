@@ -1,6 +1,7 @@
 let LOCATIONS = [];
 let ITEMS = [];
 let CATEGORIES = [];
+let GENDERS = [];
 let DATA = [];
 let YEAR_RANGE_SELECTED_3 = "0";
 let MONTH_RANGE_SELECTED_3 = "0";
@@ -9,6 +10,7 @@ let MONTH_RANGE_SELECTED_2 = "0";
 let YEAR_RANGE_SELECTED_2 = "0";
 let YEAR_RANGE_SELECTED_1 = "0";
 let HOLIDAY_SELECTED = "0";
+let SALES_YEAR_SELECTED = "0";
 
 $(document).ready(function(){
     (async () => {
@@ -117,14 +119,25 @@ $(document).ready(function(){
         }
     });
 
+    $("#sales-year-selector").change(function(){
+        let selectedYear = $(this).children("option:selected").val();
+        if(selectedYear != "0"){
+            getSalesPerQuarter(selectedYear);
+        }
+        SALES_YEAR_SELECTED = selectedYear;
+    });
 });
 
 function readDataFile(data){
     extractLocations(data);
     extractItems(data);
     extractCategories(data);
+    extractGenders(data);
     DATA = data;
     getAgeDemographics();
+    getGenderDemographics();
+    getLocationDemographics();
+    getSalesPerYear();
     //drawColumnChart({data: [{label: "boy", value:5}, {label: "girl", value :10}], selector: "#container-top-items-by-age svg", option: option});
     //console.log();
 }
@@ -147,6 +160,13 @@ function extractCategories(data){
     data.forEach((row) => {
         if(!CATEGORIES.includes(row.category)){
             CATEGORIES.push(row.category);
+        }
+    });
+}
+function extractGenders(data){
+    data.forEach((row) => {
+        if(!GENDERS.includes(row.gender)){
+            GENDERS.push(row.gender);
         }
     });
 }
@@ -421,6 +441,87 @@ function getAgeDemographics(){
     //console.log();
 }
 
+function getGenderDemographics(){
+    let data = DATA;
+    let genderClassifiers = [{name: "MALE", value: "male", count: 0},{name: "FEMALE", value: "female", count: 0}];
+    genderClassifiers.forEach((genderClassifier) => {
+        data.forEach((record) => {
+            if(record.gender === genderClassifier.value){
+                genderClassifier.count = genderClassifier.count + 1;
+            }
+        });
+    });
+    let usersByGender = [];
+    genderClassifiers.forEach((genderClassifier) => {
+        usersByGender.push({label: genderClassifier.name, value: genderClassifier.count});
+    });
+
+    drawDonutChart({data: usersByGender, selector: "#container-demographics-by-gender svg"});
+    //console.log();
+}
+
+function getLocationDemographics(){
+    let locationClassifiers = LOCATIONS.map((location) => {
+        return {label: location, value: 0};
+    });
+    locationClassifiers.forEach((locationClassifier) => {
+        DATA.forEach((record) => {
+            if(record.location === locationClassifier.label){
+                locationClassifier.value = locationClassifier.value + 1;
+            }
+        });
+    });
+    drawDonutChart({data: locationClassifiers, selector: "#container-demographics-by-location svg"});
+    //console.log();
+}
+
+function getSalesPerYear(){
+    let salesMap = [{label: 2019, value: 0.0}, {label: 2018, value: 0.0}, {label: 2017, value: 0.0}];
+    salesMap.forEach((yearSale) => {
+        DATA.forEach((record) => {
+            let totalPrice = parseFloat(record.total_price);
+            let recordYear = parseInt(record.date.split("-")[0]);
+            if(recordYear === yearSale.label){
+                yearSale.value = parseFloat((yearSale.value + totalPrice).toFixed(2));
+            }
+        });
+    });
+    const salesOptions = {
+        format: 'd',
+        yLabel: 'Quantity',
+        title: 'Sales Per Annum',
+    };
+    let colour = '#5b141f';
+    drawBarChartMoney({data: salesMap, selector: "#container-sales-by-year svg", option: salesOptions, colour: colour});
+    console.log();
+}
+
+function getSalesPerQuarter(year){
+    year = parseInt(year);
+    let quarterMap = [{label: 1, value: 0.0}, {label: 2, value: 0.0}, {label: 3, value: 0.0}, {label: 4, value: 0.0}];
+    quarterMap.forEach((quarterSale) => {
+        DATA.forEach((record) => {
+            let recordTotalPrice = parseFloat(record.total_price);
+            let recordYear = parseInt(record.date.split("-")[0]);
+            let recordDate = record.date;
+            let isCorrectQuarter = isDateWithinQuarter(recordDate, quarterSale.label);
+            if(recordYear === year && isCorrectQuarter){
+                quarterSale.value = quarterSale.value + recordTotalPrice;
+            }
+        });
+    });
+    drawDonutChartMoney({data: quarterMap, selector: "#container-sales-by-quarter svg"});
+    console.log();
+}
+function isDateWithinQuarter(date, quarter){
+    let month = parseInt(date.split("-")[1]);
+    if((month >= 1 && month < 4 && quarter == 1) || (month >= 4 && month < 7 && quarter == 2) || (month >= 7 && month < 10 && quarter == 3) ||
+        (month >= 10 && month < 13 && quarter == 4)){
+        return true
+    }
+    return false;
+}
+
 function isHolidayValid(date, holidayName){
     let day = parseInt(date.split("-")[2]);
     let month = parseInt(date.split("-")[1]);
@@ -577,6 +678,92 @@ const drawBarChart = ({ data, selector, option , colour}) => {
         .text(option.title);
 };
 
+const drawBarChartMoney = ({ data, selector, option , colour}) => {
+    $(selector).html("");
+
+    const barHeight = 25;
+    const margin = { top: 80, right: 0, bottom: 20, left: 70 },
+        width = $(selector).width() - margin.left - margin.right,
+        height = Math.ceil((data.length + 0.1) * barHeight) + margin.top + margin.bottom;
+
+    const svg = d3.select(selector).attr('viewBox', [0, 0, width, height]);
+
+    const x = d3
+        .scaleLinear()
+        .domain([0, d3.max(data, (d) => d.value)])
+        .range([margin.left, width - margin.right]);
+    const y = d3
+        .scaleBand()
+        .domain(d3.range(data.length))
+        .rangeRound([margin.top, height - margin.bottom])
+        .padding(0.1);
+
+    const xAxis = (g) =>
+        g
+            .attr('transform', `translate(0,${margin.top})`)
+            .call(d3.axisTop(x).ticks(width / 80, option.format))
+            .call((g) => g.select('.domain').remove())
+            .call((g) =>
+                g
+                    .select('.tick:first-of-type text')
+                    .clone()
+                    .attr('x', 0)
+                    .attr('y', -30)
+                    .attr('text-anchor', 'start')
+                    .attr('font-weight', 'bold')
+                    .attr('fill', 'currentColor')
+                    .text(option.yLabel)
+            );
+    const yAxis = (g) =>
+        g
+            .attr('transform', `translate(${margin.left},0)`)
+            .call(
+                d3
+                    .axisLeft(y)
+                    .tickFormat((i) => data[i].label)
+                    .tickSizeOuter(0)
+            )
+            .call((g) => g.selectAll('text').attr('transform', 'rotate(10)'));
+
+    const format = x.tickFormat(20, option.format);
+    let currencyFormatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'EUR',
+    });
+
+    svg
+        .append('g')
+        .attr('fill', colour)
+        .selectAll('rect')
+        .data(data)
+        .join('rect')
+        .attr('x', x(0))
+        .attr('y', (d, i) => y(i))
+        .attr('width', (d) => x(d.value) - x(0))
+        .attr('height', y.bandwidth());
+    svg
+        .append('g')
+        .attr('fill', 'white')
+        .attr('text-anchor', 'end')
+        .attr('font-family', 'sans-serif')
+        .selectAll('text')
+        .data(data)
+        .join('text')
+        .attr('x', (d) => x(d.value) - 4)
+        .attr('y', (d, i) => y(i) + y.bandwidth() / 2)
+        .attr('dy', '0.35em')
+        .text((d) => currencyFormatter.format(format(d.value)));
+    svg.append('g').call(xAxis);
+    svg.append('g').call(yAxis);
+    svg
+        .append('text')
+        .attr('class', 'title')
+        .attr('x', width / 2)
+        .attr('y', margin.top / 3)
+        .attr('text-anchor', 'middle')
+        .text(option.title);
+};
+
 const drawDonutChart = ({ data, selector }) => {
     $(selector).html("");
 
@@ -594,7 +781,7 @@ const drawDonutChart = ({ data, selector }) => {
     const radius = Math.min(width, height) / 2;
     const arc = d3
         .arc()
-        .innerRadius(radius * 0.67)
+        .innerRadius(radius * 0.45)
         .outerRadius(radius - 1);
     const color = d3
         .scaleOrdinal()
@@ -614,7 +801,7 @@ const drawDonutChart = ({ data, selector }) => {
     svg
         .append('g')
         .attr('font-family', 'sans-serif')
-        .attr('font-size', 12)
+        .attr('font-size', 17)
         .attr('text-anchor', 'middle')
         .selectAll('text')
         .data(arcs)
@@ -635,6 +822,72 @@ const drawDonutChart = ({ data, selector }) => {
                 .attr('y', '0.7em')
                 .attr('fill-opacity', 0.7)
                 .text((d) => d.data.value.toLocaleString())
+        );
+};
+
+const drawDonutChartMoney = ({ data, selector }) => {
+    $(selector).html("");
+
+    const margin = { top: 80, right: 20, bottom: 20, left: 80 },
+        width = $(selector).width() - margin.left - margin.right,
+        height = Math.min(width, 400);
+
+    const svg = d3.select(selector).attr('viewBox', [-width / 2, -height / 2, width, height]);
+
+    const pie = d3
+        .pie()
+        .padAngle(0.005)
+        .sort(null)
+        .value((d) => d.value);
+    const radius = Math.min(width, height) / 2;
+    const arc = d3
+        .arc()
+        .innerRadius(radius * 0.45)
+        .outerRadius(radius - 1);
+    const color = d3
+        .scaleOrdinal()
+        .domain(data.map((d) => d.label))
+        .range(d3.quantize((t) => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
+    const arcs = pie(data);
+    let currencyFormatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'EUR',
+    });
+
+    svg
+        .selectAll('path')
+        .data(arcs)
+        .join('path')
+        .attr('fill', (d) => color(d.data.label))
+        .attr('d', arc)
+        .append('title')
+        .text((d) => `${d.data.label}: ${d.data.value.toLocaleString()}`);
+
+    svg
+        .append('g')
+        .attr('font-family', 'sans-serif')
+        .attr('font-size', 15)
+        .attr('text-anchor', 'middle')
+        .selectAll('text')
+        .data(arcs)
+        .join('text')
+        .attr('transform', (d) => `translate(${arc.centroid(d)})`)
+        .call((text) =>
+            text
+                .append('tspan')
+                .attr('y', '-0.4em')
+                .attr('font-weight', 'bold')
+                .attr('fill-opacity', 0.9)
+                .text((d) => d.data.label)
+        )
+        .call((text) =>
+            text
+                .filter((d) => d.endAngle - d.startAngle > 0.25)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', '0.7em')
+                .attr('fill-opacity', 0.9)
+                .text((d) => currencyFormatter.format(d.data.value))
         );
 };
 

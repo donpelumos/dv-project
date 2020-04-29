@@ -62,7 +62,7 @@
                 <p style="text-align: center; font-size: 25px; width: 100%;">
                     ITEMS BY LOCATION<br>
                     <select id="location-range-selector">
-                        <option value="0">--Select County--</option>
+                        <option value="0">--Select Province--</option>
                         <!--
                         <option value="male">Male</option>
                         <option value="female">Female</option>-->
@@ -217,6 +217,33 @@
                         LOCATION
                     </p>
                     <div id="container-demographics-by-location"  style="text-align: center;">
+                        <div class="chart" style="height: 400px;"><svg></svg></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="width: 100%; height: 2px; background: black;"></div>
+
+            <div class="row custom-row" style="background: #8a8275bd">
+                <p style="text-align: center; font-size: 25px; width: 100%;">
+                    OVERALL SALES
+                </p>
+                <br>
+            </div>
+            <div class="row" style="margin-left:0px; margin-right:0px; background: #8a82755e">
+                <div class="col-sm-6" style="height:500px;text-align: center;">
+                    <div id="container-sales-by-year" >
+                        <div class="chart"><svg></svg></div>
+                    </div>
+                </div>
+                <div class="col-sm-6" style="height:500px;text-align: center;">
+                    <select id="sales-year-selector" style="margin-left: 10px; margin-right: 10px;">
+                        <option value="0">--Select Year--</option>
+                        <option value="2019">2019</option>
+                        <option value="2018">2018</option>
+                        <option value="2017">2017</option>
+                    </select>
+                    <div id="container-sales-by-quarter" style="margin-top: 20px;" >
                         <div class="chart" style="height: 400px;"><svg></svg></div>
                     </div>
                 </div>

@@ -1,14 +1,14 @@
-var LOCATIONS = [];
-var ITEMS = [];
-var CATEGORIES = [];
-var DATA = [];
-var YEAR_RANGE_SELECTED_3 = "0";
-var MONTH_RANGE_SELECTED_3 = "0";
-var WEEK_RANGE_SELECTED_3 = "0";
-var MONTH_RANGE_SELECTED_2 = "0";
-var YEAR_RANGE_SELECTED_2 = "0";
-var YEAR_RANGE_SELECTED_1 = "0";
-var HOLIDAY_SELECTED = "0";
+let LOCATIONS = [];
+let ITEMS = [];
+let CATEGORIES = [];
+let DATA = [];
+let YEAR_RANGE_SELECTED_3 = "0";
+let MONTH_RANGE_SELECTED_3 = "0";
+let WEEK_RANGE_SELECTED_3 = "0";
+let MONTH_RANGE_SELECTED_2 = "0";
+let YEAR_RANGE_SELECTED_2 = "0";
+let YEAR_RANGE_SELECTED_1 = "0";
+let HOLIDAY_SELECTED = "0";
 
 $(document).ready(function(){
     (async () => {
@@ -18,30 +18,30 @@ $(document).ready(function(){
     })();
 
     $("#age-range-selector").change(function(){
-        var selectedAgeRange = $(this).children("option:selected").val();
+        let selectedAgeRange = $(this).children("option:selected").val();
         if(selectedAgeRange != "0"){
-            var lowerAgeLimit = parseInt(selectedAgeRange.split("-")[0]);
-            var upperAgeLimit = parseInt(selectedAgeRange.split("-")[1]);
+            let lowerAgeLimit = parseInt(selectedAgeRange.split("-")[0]);
+            let upperAgeLimit = parseInt(selectedAgeRange.split("-")[1]);
             getTopTenItemsByAgeRange(DATA, lowerAgeLimit, upperAgeLimit);
         }
     });
 
     $("#gender-range-selector").change(function(){
-        var selectedGender = $(this).children("option:selected").val();
+        let selectedGender = $(this).children("option:selected").val();
         if(selectedGender != "0"){
             getTopTenItemsByGender(DATA, selectedGender);
         }
     });
 
     $("#location-range-selector").change(function(){
-        var selectedLocation = $(this).children("option:selected").val();
+        let selectedLocation = $(this).children("option:selected").val();
         if(selectedLocation != "0"){
             getTopTenItemsByLocation(DATA, selectedLocation);
         }
     });
 
     $("#year-range-selector-3").change(function(){
-        var selectedYear = $(this).children("option:selected").val();
+        let selectedYear = $(this).children("option:selected").val();
         if(selectedYear == "0"){
             $("#month-range-selector-3").prop('disabled', true);
             $("#week-range-selector-3").prop('disabled', true);
@@ -54,7 +54,7 @@ $(document).ready(function(){
     });
 
     $("#month-range-selector-3").change(function(){
-        var selectedMonth = $(this).children("option:selected").val();
+        let selectedMonth = $(this).children("option:selected").val();
         if(selectedMonth == "0"){
             $("#week-range-selector-3").prop('disabled', true);
         }
@@ -65,7 +65,7 @@ $(document).ready(function(){
     });
 
     $("#week-range-selector-3").change(function(){
-        var selectedWeek = $(this).children("option:selected").val();
+        let selectedWeek = $(this).children("option:selected").val();
         if(selectedWeek != "0"){
             getTopFiveItemsByWeek(DATA, YEAR_RANGE_SELECTED_3, MONTH_RANGE_SELECTED_3, selectedWeek);
         }
@@ -73,7 +73,7 @@ $(document).ready(function(){
     });
 
     $("#year-range-selector-2").change(function(){
-        var selectedYear = $(this).children("option:selected").val();
+        let selectedYear = $(this).children("option:selected").val();
         if(selectedYear == "0"){
             $("#month-range-selector-2").prop('disabled', true);
         }
@@ -84,7 +84,7 @@ $(document).ready(function(){
     });
 
     $("#month-range-selector-2").change(function(){
-        var selectedMonth = $(this).children("option:selected").val();
+        let selectedMonth = $(this).children("option:selected").val();
         if(selectedMonth != "0"){
             getTopFiveItemsByMonth(DATA, YEAR_RANGE_SELECTED_2, selectedMonth);
         }
@@ -92,7 +92,7 @@ $(document).ready(function(){
     });
 
     $("#year-range-selector-1").change(function(){
-        var selectedYear = $(this).children("option:selected").val();
+        let selectedYear = $(this).children("option:selected").val();
         if(selectedYear != "0"){
             getTopFiveItemsByYear(DATA, selectedYear);
         }
@@ -100,7 +100,7 @@ $(document).ready(function(){
     });
 
     $("#holiday-selector").change(function(){
-        var selectedHoliday = $(this).children("option:selected").val();
+        let selectedHoliday = $(this).children("option:selected").val();
         if(selectedHoliday == "0"){
             $("#holiday-year-selector").prop('disabled', true);
         }
@@ -111,7 +111,7 @@ $(document).ready(function(){
     });
 
     $("#holiday-year-selector").change(function(){
-        var selectedHolidayYear = $(this).children("option:selected").val();
+        let selectedHolidayYear = $(this).children("option:selected").val();
         if(selectedHolidayYear != "0"){
             getTopFiveItemsByHoliday(DATA, HOLIDAY_SELECTED, selectedHolidayYear);
         }
@@ -153,7 +153,7 @@ function extractCategories(data){
 function populateLocations(locations){
     locations.sort();
     $.each(locations, function (index, location) {
-        var locationOptionString = `
+        let locationOptionString = `
             <option value="${location}"> ${location.substr(0,1).toLocaleUpperCase()+location.substr(1).toLowerCase()}</option>
             `;
         $("#location-range-selector").append(locationOptionString);
@@ -161,7 +161,7 @@ function populateLocations(locations){
 }
 
 function getTopTenItemsByAgeRange(data, lowerAge, upperAge){
-    var itemCountMap = {};
+    let itemCountMap = {};
     ITEMS.forEach((item) => {
         itemCountMap[item] = 0;
     });
@@ -173,13 +173,13 @@ function getTopTenItemsByAgeRange(data, lowerAge, upperAge){
         });
     });
 
-    var countValues = [];
-    for(var itemName in itemCountMap){
+    let countValues = [];
+    for(let itemName in itemCountMap){
         countValues.push(itemCountMap[itemName]);
     }
     countValues.sort((a, b) => b - a);//sort the counts in descending order
-    var topTenMostPopular = extractTopNProperties(itemCountMap,countValues,10);
-    var topTenLeastPopular = extractLastNProperties(itemCountMap, countValues, 10);
+    let topTenMostPopular = extractTopNProperties(itemCountMap,countValues,10);
+    let topTenLeastPopular = extractLastNProperties(itemCountMap, countValues, 10);
 
     const mostPopularOptions = {
         format: 'd',
@@ -198,7 +198,7 @@ function getTopTenItemsByAgeRange(data, lowerAge, upperAge){
 }
 
 function getTopTenItemsByGender(data, gender){
-    var itemCountMap = {};
+    let itemCountMap = {};
     ITEMS.forEach((item) => {
         itemCountMap[item] = 0;
     });
@@ -210,13 +210,13 @@ function getTopTenItemsByGender(data, gender){
         });
     });
 
-    var countValues = [];
-    for(var itemName in itemCountMap){
+    let countValues = [];
+    for(let itemName in itemCountMap){
         countValues.push(itemCountMap[itemName]);
     }
     countValues.sort((a, b) => b - a);//sort the counts in descending order
-    var topTenMostPopular = extractTopNProperties(itemCountMap,countValues,10);
-    var topTenLeastPopular = extractLastNProperties(itemCountMap, countValues, 10);
+    let topTenMostPopular = extractTopNProperties(itemCountMap,countValues,10);
+    let topTenLeastPopular = extractLastNProperties(itemCountMap, countValues, 10);
 
     const mostPopularOptions = {
         format: 'd',
@@ -235,7 +235,7 @@ function getTopTenItemsByGender(data, gender){
 }
 
 function getTopTenItemsByLocation(data, location){
-    var itemCountMap = {};
+    let itemCountMap = {};
     ITEMS.forEach((item) => {
         itemCountMap[item] = 0;
     });
@@ -247,13 +247,13 @@ function getTopTenItemsByLocation(data, location){
         });
     });
 
-    var countValues = [];
-    for(var itemName in itemCountMap){
+    let countValues = [];
+    for(let itemName in itemCountMap){
         countValues.push(itemCountMap[itemName]);
     }
     countValues.sort((a, b) => b - a);//sort the counts in descending order
-    var topTenMostPopular = extractTopNProperties(itemCountMap,countValues,10);
-    var topTenLeastPopular = extractLastNProperties(itemCountMap, countValues, 10);
+    let topTenMostPopular = extractTopNProperties(itemCountMap,countValues,10);
+    let topTenLeastPopular = extractLastNProperties(itemCountMap, countValues, 10);
 
     const mostPopularOptions = {
         format: 'd',
@@ -272,25 +272,25 @@ function getTopTenItemsByLocation(data, location){
 }
 
 function getTopFiveItemsByYear(data, year){
-    var itemCountMap = {};
+    let itemCountMap = {};
     ITEMS.forEach((item) => {
         itemCountMap[item] = 0;
     });
     Object.keys(itemCountMap).forEach((item) => {
         data.forEach((record) => {
-            var recordYear = record.date.split("-")[0];
+            let recordYear = record.date.split("-")[0];
             if(recordYear == year && record.item == item){
                 itemCountMap[item] = itemCountMap[item] + parseInt(record.quantity);
             }
         });
     });
 
-    var countValues = [];
-    for(var itemName in itemCountMap){
+    let countValues = [];
+    for(let itemName in itemCountMap){
         countValues.push(itemCountMap[itemName]);
     }
     countValues.sort((a, b) => b - a);//sort the counts in descending order
-    var topFiveMostPopular = extractTopNProperties(itemCountMap,countValues,5);
+    let topFiveMostPopular = extractTopNProperties(itemCountMap,countValues,5);
 
     const mostPopularOptions = {
         format: 'd',
@@ -303,7 +303,7 @@ function getTopFiveItemsByYear(data, year){
 }
 
 function getTopFiveItemsByMonth(data, year, month){
-    var itemCountMap = {};
+    let itemCountMap = {};
     ITEMS.forEach((item) => {
         itemCountMap[item] = 0;
     });
@@ -317,12 +317,12 @@ function getTopFiveItemsByMonth(data, year, month){
         });
     });
 
-    var countValues = [];
-    for(var itemName in itemCountMap){
+    let countValues = [];
+    for(let itemName in itemCountMap){
         countValues.push(itemCountMap[itemName]);
     }
     countValues.sort((a, b) => b - a);//sort the counts in descending order
-    var topFiveMostPopular = extractTopNProperties(itemCountMap,countValues,5);
+    let topFiveMostPopular = extractTopNProperties(itemCountMap,countValues,5);
 
     const mostPopularOptions = {
         format: 'd',
@@ -335,7 +335,7 @@ function getTopFiveItemsByMonth(data, year, month){
 }
 
 function getTopFiveItemsByWeek(data, year, month, week){
-    var itemCountMap = {};
+    let itemCountMap = {};
     ITEMS.forEach((item) => {
         itemCountMap[item] = 0;
     });
@@ -350,12 +350,12 @@ function getTopFiveItemsByWeek(data, year, month, week){
         });
     });
 
-    var countValues = [];
-    for(var itemName in itemCountMap){
+    let countValues = [];
+    for(let itemName in itemCountMap){
         countValues.push(itemCountMap[itemName]);
     }
     countValues.sort((a, b) => b - a);//sort the counts in descending order
-    var topFiveMostPopular = extractTopNProperties(itemCountMap,countValues,5);
+    let topFiveMostPopular = extractTopNProperties(itemCountMap,countValues,5);
 
     const mostPopularOptions = {
         format: 'd',
@@ -368,7 +368,7 @@ function getTopFiveItemsByWeek(data, year, month, week){
 }
 
 function getTopFiveItemsByHoliday(data, holiday, holidayYear){
-    var itemCountMap = {};
+    let itemCountMap = {};
     ITEMS.forEach((item) => {
         itemCountMap[item] = 0;
     });
@@ -383,12 +383,12 @@ function getTopFiveItemsByHoliday(data, holiday, holidayYear){
         });
     });
 
-    var countValues = [];
-    for(var itemName in itemCountMap){
+    let countValues = [];
+    for(let itemName in itemCountMap){
         countValues.push(itemCountMap[itemName]);
     }
     countValues.sort((a, b) => b - a);//sort the counts in descending order
-    var topFiveMostPopular = extractTopNProperties(itemCountMap,countValues,5);
+    let topFiveMostPopular = extractTopNProperties(itemCountMap,countValues,5);
 
     const mostPopularOptions = {
         format: 'd',

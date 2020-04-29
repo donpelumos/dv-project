@@ -7,7 +7,7 @@
     </head>
     <body>
         <div class="bordered-div" style="margin: 20px;">
-            <div class="row custom-row ">
+            <div class="row custom-row" style="background: #f5f4f4;">
                 <p style="text-align: center; font-size: 25px; width: 100%;">
                     ITEMS BY AGE RANGE<br>
                     <select id="age-range-selector">
@@ -18,7 +18,7 @@
                     </select>
                 </p>
             </div>
-            <div class="row" style="margin-left:0px; margin-right:0px;">
+            <div class="row" style="margin-left:0px; margin-right:0px; background: #f5f4f485;">
                 <div class="col-sm-6" style="height:400px;">
                     <div id="container-top-items-by-age" >
                         <div class="chart"><svg></svg></div>
@@ -33,7 +33,7 @@
 
             <div style="width: 100%; height: 2px; background: black;"></div>
 
-            <div class="row custom-row ">
+            <div class="row custom-row" style="background: #c87fff5c;">
                 <p style="text-align: center; font-size: 25px; width: 100%;">
                     ITEMS BY GENDER<br>
                     <select id="gender-range-selector">
@@ -43,7 +43,7 @@
                     </select>
                 </p>
             </div>
-            <div class="row" style="margin-left:0px; margin-right:0px;">
+            <div class="row" style="margin-left:0px; margin-right:0px; background: #c87fff2c;">
                 <div class="col-sm-6" style="height:400px;">
                     <div id="container-top-items-by-gender" >
                         <div class="chart"><svg></svg></div>
@@ -58,7 +58,7 @@
 
             <div style="width: 100%; height: 2px; background: black;"></div>
 
-            <div class="row custom-row ">
+            <div class="row custom-row" style="background: #f5f5dc">
                 <p style="text-align: center; font-size: 25px; width: 100%;">
                     ITEMS BY LOCATION<br>
                     <select id="location-range-selector">
@@ -69,7 +69,7 @@
                     </select>
                 </p>
             </div>
-            <div class="row" style="margin-left:0px; margin-right:0px;">
+            <div class="row" style="margin-left:0px; margin-right:0px; background: #f5f5dca6">
                 <div class="col-sm-6" style="height:400px;">
                     <div id="container-top-items-by-location" >
                         <div class="chart"><svg></svg></div>
@@ -84,12 +84,12 @@
 
             <div style="width: 100%; height: 2px; background: black;"></div>
 
-            <div class="row custom-row ">
+            <div class="row custom-row" style="background: #da0e0e36;">
                 <p style="text-align: center; font-size: 25px; width: 100%;">
                     TOP 5 ITEMS OVER TIME PERIODS<br>
                 </p>
             </div>
-            <div class="row" style="margin-left:0px; margin-right:0px;">
+            <div class="row" style="margin-left:0px; margin-right:0px;background: #da0e0e1f;">
                 <div class="col-sm-4" style="height:400px;">
                     <div id="container-top-items-by-year"  style="text-align: center;">
                         <select id="year-range-selector-1" style="margin-left: 10px; margin-right: 10px;">
@@ -164,12 +164,12 @@
 
             <div style="width: 100%; height: 2px; background: black;"></div>
 
-            <div class="row custom-row ">
+            <div class="row custom-row" style="background: #ffff0052;">
                 <p style="text-align: center; font-size: 25px; width: 100%;">
                     ITEMS BY HOLIDAYS<br>
                 </p>
             </div>
-            <div class="row" style="margin-left:0px; margin-right:0px;">
+            <div class="row" style="margin-left:0px; margin-right:0px;background: #ffff002e;">
                 <div class="col-sm-12" style="height:400px;">
                     <div id="container-top-items-by-holiday"  style="text-align: center;">
                         <select id="holiday-selector" style="margin-left: 10px; margin-right: 10px;">
@@ -183,6 +183,40 @@
                             <option value="2017">2017</option>
                         </select>
                         <div class="chart"><svg></svg></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="width: 100%; height: 2px; background: black;"></div>
+
+            <div class="row custom-row " style="background: #6278941f">
+                <p style="text-align: center; font-size: 25px; width: 100%;">
+                    DEMOGRAPHICS<br>
+                </p>
+            </div>
+            <div class="row" style="margin-left:0px; margin-right:0px; background: #62789410">
+                <div class="col-sm-4" style="height:550px;">
+                    <p style="text-align: center;font-size: 24px;">
+                        AGE
+                    </p>
+                    <div id="container-demographics-by-age"  style="text-align: center;">
+                        <div class="chart" style="height: 400px;"><svg></svg></div>
+                    </div>
+                </div>
+                <div class="col-sm-4" style="height:550px;">
+                    <p style="text-align: center;font-size: 24px;">
+                        AGE
+                    </p>
+                    <div id="container-demographics-by-gender"  style="text-align: center;">
+                        <div class="chart" style="height: 400px;"><svg></svg></div>
+                    </div>
+                </div>
+                <div class="col-sm-4" style="height:550px;">
+                    <p style="text-align: center;font-size: 24px;">
+                        AGE
+                    </p>
+                    <div id="container-demographics-by-location"  style="text-align: center;">
+                        <div class="chart" style="height: 400px;"><svg></svg></div>
                     </div>
                 </div>
             </div>

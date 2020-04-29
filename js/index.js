@@ -124,13 +124,9 @@ function readDataFile(data){
     extractItems(data);
     extractCategories(data);
     DATA = data;
-    const option = {
-        format: 'd',
-        yLabel: 'Quantity',
-        title: 'Most Popular vs Least Popular Item',
-    };
+    getAgeDemographics();
     //drawColumnChart({data: [{label: "boy", value:5}, {label: "girl", value :10}], selector: "#container-top-items-by-age svg", option: option});
-    console.log();
+    //console.log();
 }
 function extractLocations(data){
     data.forEach((row) => {
@@ -198,7 +194,7 @@ function getTopTenItemsByAgeRange(data, lowerAge, upperAge){
     let colour = '#09155b';
     drawBarChart({data: topTenMostPopular, selector: "#container-top-items-by-age svg", option: mostPopularOptions, colour: colour});
     drawBarChart({data: topTenLeastPopular, selector: "#container-last-items-by-age svg", option: leastPopularOptions, colour: colour});
-    console.log();
+    //console.log();
 }
 
 function getTopTenItemsByGender(data, gender){
@@ -235,7 +231,7 @@ function getTopTenItemsByGender(data, gender){
     let colour = '#1e7430';
     drawBarChart({data: topTenMostPopular, selector: "#container-top-items-by-gender svg", option: mostPopularOptions, colour: colour});
     drawBarChart({data: topTenLeastPopular, selector: "#container-last-items-by-gender svg", option: leastPopularOptions, colour: colour});
-    console.log();
+    //console.log();
 }
 
 function getTopTenItemsByLocation(data, location){
@@ -272,7 +268,7 @@ function getTopTenItemsByLocation(data, location){
     let colour = '#0f6c74';
     drawBarChart({data: topTenMostPopular, selector: "#container-top-items-by-location svg", option: mostPopularOptions, colour: colour});
     drawBarChart({data: topTenLeastPopular, selector: "#container-last-items-by-location svg", option: leastPopularOptions, colour: colour});
-    console.log();
+    //console.log();
 }
 
 function getTopFiveItemsByYear(data, year){
@@ -303,7 +299,7 @@ function getTopFiveItemsByYear(data, year){
     };
     let colour = '#17742c';
     drawBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-year svg", option: mostPopularOptions, colour: colour});
-    console.log();
+    //console.log();
 }
 
 function getTopFiveItemsByMonth(data, year, month){
@@ -335,7 +331,7 @@ function getTopFiveItemsByMonth(data, year, month){
     };
     let colour = '#70742f';
     drawBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-month svg", option: mostPopularOptions, colour: colour});
-    console.log();
+    //console.log();
 }
 
 function getTopFiveItemsByWeek(data, year, month, week){
@@ -368,7 +364,7 @@ function getTopFiveItemsByWeek(data, year, month, week){
     };
     let colour = '#744743';
     drawBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-week svg", option: mostPopularOptions, colour: colour});
-    console.log();
+    //console.log();
 }
 
 function getTopFiveItemsByHoliday(data, holiday, holidayYear){
@@ -401,7 +397,28 @@ function getTopFiveItemsByHoliday(data, holiday, holidayYear){
     };
     let colour = '#747474';
     drawBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-holiday svg", option: mostPopularOptions, colour: colour});
-    console.log();
+    //console.log();
+}
+
+function getAgeDemographics(){
+    let data = DATA;
+    let ageClassifiers = [{range: "18 - 29", value: {lowerAge: 18, upperAge: 29}, count: 0},
+        {range: "30 - 44", value: {lowerAge: 30, upperAge: 44}, count: 0},
+        {range: "45 - 65", value: {lowerAge: 45, upperAge: 65}, count: 0}];
+    ageClassifiers.forEach((ageClassifier) => {
+        data.forEach((record) => {
+            if(parseInt(record.age) >= ageClassifier.value.lowerAge && parseInt(record.age) <= ageClassifier.value.upperAge){
+                ageClassifier.count = ageClassifier.count + 1;
+            }
+        });
+    });
+    let usersByAge = [];
+    ageClassifiers.forEach((ageClassifier) => {
+        usersByAge.push({label: ageClassifier.range, value: ageClassifier.count});
+    });
+    
+    drawDonutChart({data: usersByAge, selector: "#container-demographics-by-age svg"});
+    //console.log();
 }
 
 function isHolidayValid(date, holidayName){
@@ -550,6 +567,67 @@ const drawBarChart = ({ data, selector, option , colour}) => {
         .attr('y', margin.top / 3)
         .attr('text-anchor', 'middle')
         .text(option.title);
+};
+
+const drawDonutChart = ({ data, selector }) => {
+    $(selector).html("");
+
+    const margin = { top: 80, right: 20, bottom: 20, left: 80 },
+        width = $(selector).width() - margin.left - margin.right,
+        height = Math.min(width, 400);
+
+    const svg = d3.select(selector).attr('viewBox', [-width / 2, -height / 2, width, height]);
+
+    const pie = d3
+        .pie()
+        .padAngle(0.005)
+        .sort(null)
+        .value((d) => d.value);
+    const radius = Math.min(width, height) / 2;
+    const arc = d3
+        .arc()
+        .innerRadius(radius * 0.67)
+        .outerRadius(radius - 1);
+    const color = d3
+        .scaleOrdinal()
+        .domain(data.map((d) => d.label))
+        .range(d3.quantize((t) => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
+    const arcs = pie(data);
+
+    svg
+        .selectAll('path')
+        .data(arcs)
+        .join('path')
+        .attr('fill', (d) => color(d.data.label))
+        .attr('d', arc)
+        .append('title')
+        .text((d) => `${d.data.label}: ${d.data.value.toLocaleString()}`);
+
+    svg
+        .append('g')
+        .attr('font-family', 'sans-serif')
+        .attr('font-size', 12)
+        .attr('text-anchor', 'middle')
+        .selectAll('text')
+        .data(arcs)
+        .join('text')
+        .attr('transform', (d) => `translate(${arc.centroid(d)})`)
+        .call((text) =>
+            text
+                .append('tspan')
+                .attr('y', '-0.4em')
+                .attr('font-weight', 'bold')
+                .text((d) => d.data.label)
+        )
+        .call((text) =>
+            text
+                .filter((d) => d.endAngle - d.startAngle > 0.25)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', '0.7em')
+                .attr('fill-opacity', 0.7)
+                .text((d) => d.data.value.toLocaleString())
+        );
 };
 
 const drawLineChart = ({ data, selector, option }) => {

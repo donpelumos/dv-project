@@ -422,10 +422,18 @@ function getAgeDemographics(){
 }
 
 function isHolidayValid(date, holidayName){
-    if(holidayName == "easter"){
-        let day = parseInt(date.split("-")[2]);
-        let month = parseInt(date.split("-")[1]);
-        if((month == 3 && day > 20) || (month == 4 && day < 16)){
+    let day = parseInt(date.split("-")[2]);
+    let month = parseInt(date.split("-")[1]);
+    if(holidayName === "easter"){
+        if((month === 3 && day > 20) || (month === 4 && day < 16)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    else if(holidayName === "christmas"){
+        if(month === 12 && day > 14){
             return true;
         }
         else{

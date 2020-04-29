@@ -2,6 +2,12 @@ var LOCATIONS = [];
 var ITEMS = [];
 var CATEGORIES = [];
 var DATA = [];
+var YEAR_RANGE_SELECTED_3 = "0";
+var MONTH_RANGE_SELECTED_3 = "0";
+var WEEK_RANGE_SELECTED_3 = "0";
+var MONTH_RANGE_SELECTED_2 = "0";
+var YEAR_RANGE_SELECTED_2 = "0";
+var YEAR_RANGE_SELECTED_1 = "0";
 
 $(document).ready(function(){
     (async () => {
@@ -19,6 +25,79 @@ $(document).ready(function(){
         }
     });
 
+    $("#gender-range-selector").change(function(){
+        var selectedGender = $(this).children("option:selected").val();
+        if(selectedGender != "0"){
+            getTopTenItemsByGender(DATA, selectedGender);
+        }
+    });
+
+    $("#location-range-selector").change(function(){
+        var selectedLocation = $(this).children("option:selected").val();
+        if(selectedLocation != "0"){
+            getTopTenItemsByLocation(DATA, selectedLocation);
+        }
+    });
+
+    $("#year-range-selector-3").change(function(){
+        var selectedYear = $(this).children("option:selected").val();
+        if(selectedYear == "0"){
+            $("#month-range-selector-3").prop('disabled', true);
+            $("#week-range-selector-3").prop('disabled', true);
+        }
+        else{
+            $("#month-range-selector-3").prop('disabled', false);
+
+        }
+        YEAR_RANGE_SELECTED_3 = selectedYear;
+    });
+
+    $("#month-range-selector-3").change(function(){
+        var selectedMonth = $(this).children("option:selected").val();
+        if(selectedMonth == "0"){
+            $("#week-range-selector-3").prop('disabled', true);
+        }
+        else{
+            $("#week-range-selector-3").prop('disabled', false);
+        }
+        MONTH_RANGE_SELECTED_3 = selectedMonth;
+    });
+
+    $("#week-range-selector-3").change(function(){
+        var selectedWeek = $(this).children("option:selected").val();
+        if(selectedWeek != "0"){
+            getTopFiveItemsByWeek(DATA, YEAR_RANGE_SELECTED_3, MONTH_RANGE_SELECTED_3, selectedWeek);
+        }
+        WEEK_RANGE_SELECTED_3 = selectedWeek;
+    });
+
+    $("#year-range-selector-2").change(function(){
+        var selectedYear = $(this).children("option:selected").val();
+        if(selectedYear == "0"){
+            $("#month-range-selector-2").prop('disabled', true);
+        }
+        else{
+            $("#month-range-selector-2").prop('disabled', false);
+        }
+        YEAR_RANGE_SELECTED_2 = selectedYear;
+    });
+
+    $("#month-range-selector-2").change(function(){
+        var selectedMonth = $(this).children("option:selected").val();
+        if(selectedMonth != "0"){
+            getTopFiveItemsByMonth(DATA, YEAR_RANGE_SELECTED_2, selectedMonth);
+        }
+        MONTH_RANGE_SELECTED_2 = selectedMonth;
+    });
+
+    $("#year-range-selector-1").change(function(){
+        var selectedYear = $(this).children("option:selected").val();
+        if(selectedYear != "0"){
+            getTopFiveItemsByYear(DATA, selectedYear);
+        }
+        YEAR_RANGE_SELECTED_1 = selectedYear;
+    });
+
 });
 
 function readDataFile(data){
@@ -31,7 +110,7 @@ function readDataFile(data){
         yLabel: 'Quantity',
         title: 'Most Popular vs Least Popular Item',
     };
-    //drawColumnChart({data: [{label: "boy", value:5}, {label: "girl", value :10}], selector: "#container-1 svg", option: option});
+    //drawColumnChart({data: [{label: "boy", value:5}, {label: "girl", value :10}], selector: "#container-top-items-by-age svg", option: option});
     console.log();
 }
 function extractLocations(data){
@@ -40,6 +119,7 @@ function extractLocations(data){
             LOCATIONS.push(row.location);
         }
     });
+    populateLocations(LOCATIONS);
 }
 function extractItems(data){
     data.forEach((row) => {
@@ -53,6 +133,15 @@ function extractCategories(data){
         if(!CATEGORIES.includes(row.category)){
             CATEGORIES.push(row.category);
         }
+    });
+}
+function populateLocations(locations){
+    locations.sort();
+    $.each(locations, function (index, location) {
+        var locationOptionString = `
+            <option value="${location}"> ${location.substr(0,1).toLocaleUpperCase()+location.substr(1).toLowerCase()}</option>
+            `;
+        $("#location-range-selector").append(locationOptionString);
     });
 }
 
@@ -87,11 +176,197 @@ function getTopTenItemsByAgeRange(data, lowerAge, upperAge){
         yLabel: 'Quantity',
         title: 'Least Popular Items',
     };
-    drawBarChart({data: topTenMostPopular, selector: "#container-1 svg", option: mostPopularOptions});
-    drawBarChart({data: topTenLeastPopular, selector: "#container-2 svg", option: leastPopularOptions});
+    let colour = '#09155b';
+    drawBarChart({data: topTenMostPopular, selector: "#container-top-items-by-age svg", option: mostPopularOptions, colour: colour});
+    drawBarChart({data: topTenLeastPopular, selector: "#container-last-items-by-age svg", option: leastPopularOptions, colour: colour});
     console.log();
 }
 
+function getTopTenItemsByGender(data, gender){
+    var itemCountMap = {};
+    ITEMS.forEach((item) => {
+        itemCountMap[item] = 0;
+    });
+    Object.keys(itemCountMap).forEach((item) => {
+        data.forEach((record) => {
+            if(record.gender == gender && record.item == item){
+                itemCountMap[item] = itemCountMap[item] + parseInt(record.quantity);
+            }
+        });
+    });
+
+    var countValues = [];
+    for(var itemName in itemCountMap){
+        countValues.push(itemCountMap[itemName]);
+    }
+    countValues.sort((a, b) => b - a);//sort the counts in descending order
+    var topTenMostPopular = extractTopNProperties(itemCountMap,countValues,10);
+    var topTenLeastPopular = extractLastNProperties(itemCountMap, countValues, 10);
+
+    const mostPopularOptions = {
+        format: 'd',
+        yLabel: 'Quantity',
+        title: 'Most Popular Items',
+    };
+    const leastPopularOptions = {
+        format: 'd',
+        yLabel: 'Quantity',
+        title: 'Least Popular Items',
+    };
+    let colour = '#1e7430';
+    drawBarChart({data: topTenMostPopular, selector: "#container-top-items-by-gender svg", option: mostPopularOptions, colour: colour});
+    drawBarChart({data: topTenLeastPopular, selector: "#container-last-items-by-gender svg", option: leastPopularOptions, colour: colour});
+    console.log();
+}
+
+function getTopTenItemsByLocation(data, location){
+    var itemCountMap = {};
+    ITEMS.forEach((item) => {
+        itemCountMap[item] = 0;
+    });
+    Object.keys(itemCountMap).forEach((item) => {
+        data.forEach((record) => {
+            if(record.location == location && record.item == item){
+                itemCountMap[item] = itemCountMap[item] + parseInt(record.quantity);
+            }
+        });
+    });
+
+    var countValues = [];
+    for(var itemName in itemCountMap){
+        countValues.push(itemCountMap[itemName]);
+    }
+    countValues.sort((a, b) => b - a);//sort the counts in descending order
+    var topTenMostPopular = extractTopNProperties(itemCountMap,countValues,10);
+    var topTenLeastPopular = extractLastNProperties(itemCountMap, countValues, 10);
+
+    const mostPopularOptions = {
+        format: 'd',
+        yLabel: 'Quantity',
+        title: 'Most Popular Items',
+    };
+    const leastPopularOptions = {
+        format: 'd',
+        yLabel: 'Quantity',
+        title: 'Least Popular Items',
+    };
+    let colour = '#0f6c74';
+    drawBarChart({data: topTenMostPopular, selector: "#container-top-items-by-location svg", option: mostPopularOptions, colour: colour});
+    drawBarChart({data: topTenLeastPopular, selector: "#container-last-items-by-location svg", option: leastPopularOptions, colour: colour});
+    console.log();
+}
+
+function getTopFiveItemsByYear(data, year){
+    var itemCountMap = {};
+    ITEMS.forEach((item) => {
+        itemCountMap[item] = 0;
+    });
+    Object.keys(itemCountMap).forEach((item) => {
+        data.forEach((record) => {
+            var recordYear = record.date.split("-")[0];
+            if(recordYear == year && record.item == item){
+                itemCountMap[item] = itemCountMap[item] + parseInt(record.quantity);
+            }
+        });
+    });
+
+    var countValues = [];
+    for(var itemName in itemCountMap){
+        countValues.push(itemCountMap[itemName]);
+    }
+    countValues.sort((a, b) => b - a);//sort the counts in descending order
+    var topFiveMostPopular = extractTopNProperties(itemCountMap,countValues,5);
+
+    const mostPopularOptions = {
+        format: 'd',
+        yLabel: 'Quantity',
+        title: 'Most Popular Items By Year',
+    };
+    let colour = '#17742c';
+    drawBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-year svg", option: mostPopularOptions, colour: colour});
+    console.log();
+}
+
+function getTopFiveItemsByMonth(data, year, month){
+    var itemCountMap = {};
+    ITEMS.forEach((item) => {
+        itemCountMap[item] = 0;
+    });
+    Object.keys(itemCountMap).forEach((item) => {
+        data.forEach((record) => {
+            let recordYear = record.date.split("-")[0];
+            let recordMonth = record.date.split("-")[1];
+            if(recordYear == year && recordMonth == month && record.item == item){
+                itemCountMap[item] = itemCountMap[item] + parseInt(record.quantity);
+            }
+        });
+    });
+
+    var countValues = [];
+    for(var itemName in itemCountMap){
+        countValues.push(itemCountMap[itemName]);
+    }
+    countValues.sort((a, b) => b - a);//sort the counts in descending order
+    var topFiveMostPopular = extractTopNProperties(itemCountMap,countValues,5);
+
+    const mostPopularOptions = {
+        format: 'd',
+        yLabel: 'Quantity',
+        title: 'Most Popular Items By Month',
+    };
+    let colour = '#70742f';
+    drawBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-month svg", option: mostPopularOptions, colour: colour});
+    console.log();
+}
+
+function getTopFiveItemsByWeek(data, year, month, week){
+    var itemCountMap = {};
+    ITEMS.forEach((item) => {
+        itemCountMap[item] = 0;
+    });
+    Object.keys(itemCountMap).forEach((item) => {
+        data.forEach((record) => {
+            let recordYear = record.date.split("-")[0];
+            let recordMonth = record.date.split("-")[1];
+            let recordWeek = getWeekFromDay(record.date.split("-")[2]);
+            if(recordYear == year && recordMonth == month && recordWeek == week && record.item == item){
+                itemCountMap[item] = itemCountMap[item] + parseInt(record.quantity);
+            }
+        });
+    });
+
+    var countValues = [];
+    for(var itemName in itemCountMap){
+        countValues.push(itemCountMap[itemName]);
+    }
+    countValues.sort((a, b) => b - a);//sort the counts in descending order
+    var topFiveMostPopular = extractTopNProperties(itemCountMap,countValues,5);
+
+    const mostPopularOptions = {
+        format: 'd',
+        yLabel: 'Quantity',
+        title: 'Most Popular Items By Week',
+    };
+    let colour = '#744743';
+    drawBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-week svg", option: mostPopularOptions, colour: colour});
+    console.log();
+}
+
+function getWeekFromDay(day){
+    day = parseInt(day);
+    if(day >= 1 && day < 8){
+        return "1";
+    }
+    else if(day >= 8 && day < 15){
+        return "2";
+    }
+    else if(day >= 15 && day < 22){
+        return "3";
+    }
+    else{
+        return "4";
+    }
+}
 
 function extractTopNProperties(objectMap, sortedValues, topN){
     let addedTopItems = [];
@@ -129,8 +404,7 @@ function extractLastNProperties(objectMap, sortedValues, topN){
     return lastNItems;
 }
 
-
-const drawBarChart = ({ data, selector, option }) => {
+const drawBarChart = ({ data, selector, option , colour}) => {
     $(selector).html("");
 
     const barHeight = 25;
@@ -181,7 +455,7 @@ const drawBarChart = ({ data, selector, option }) => {
 
     svg
         .append('g')
-        .attr('fill', 'steelblue')
+        .attr('fill', colour)
         .selectAll('rect')
         .data(data)
         .join('rect')

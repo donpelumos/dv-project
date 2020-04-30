@@ -24,14 +24,14 @@ $(document).ready(function(){
         if(selectedAgeRange != "0"){
             let lowerAgeLimit = parseInt(selectedAgeRange.split("-")[0]);
             let upperAgeLimit = parseInt(selectedAgeRange.split("-")[1]);
-            getTopTenItemsByAgeRange(DATA, lowerAgeLimit, upperAgeLimit);
+            getTopTenItemsByAgeRange(lowerAgeLimit, upperAgeLimit);
         }
     });
 
     $("#gender-range-selector").change(function(){
         let selectedGender = $(this).children("option:selected").val();
         if(selectedGender != "0"){
-            getTopTenItemsByGender(DATA, selectedGender);
+            getTopTenItemsByGender(selectedGender);
         }
     });
 
@@ -126,6 +126,13 @@ $(document).ready(function(){
         }
         SALES_YEAR_SELECTED = selectedYear;
     });
+
+    $("#item-by-category-selector").change(function(){
+        let selectedCategory = $(this).children("option:selected").val();
+        if(selectedCategory != "0"){
+            getTopItemByCategory(selectedCategory);
+        }
+    });
 });
 
 function readDataFile(data){
@@ -147,7 +154,7 @@ function extractLocations(data){
             LOCATIONS.push(row.location);
         }
     });
-    populateLocations(LOCATIONS);
+    populateLocations();
 }
 function extractItems(data){
     data.forEach((row) => {
@@ -162,6 +169,7 @@ function extractCategories(data){
             CATEGORIES.push(row.category);
         }
     });
+    populateCategories();
 }
 function extractGenders(data){
     data.forEach((row) => {
@@ -170,7 +178,8 @@ function extractGenders(data){
         }
     });
 }
-function populateLocations(locations){
+function populateLocations(){
+    locations = LOCATIONS;
     locations.sort();
     $.each(locations, function (index, location) {
         let locationOptionString = `
@@ -179,14 +188,24 @@ function populateLocations(locations){
         $("#location-range-selector").append(locationOptionString);
     });
 }
+function populateCategories(){
+    let categories = CATEGORIES;
+    categories.sort();
+    $.each(categories, function (index, category) {
+        let categoryOptionString = `
+            <option value="${category}"> ${category.substr(0,1).toLocaleUpperCase()+category.substr(1).toLowerCase()}</option>
+            `;
+        $("#item-by-category-selector").append(categoryOptionString);
+    });
+}
 
-function getTopTenItemsByAgeRange(data, lowerAge, upperAge){
+function getTopTenItemsByAgeRange(lowerAge, upperAge){
     let itemCountMap = {};
     ITEMS.forEach((item) => {
         itemCountMap[item] = 0;
     });
     Object.keys(itemCountMap).forEach((item) => {
-        data.forEach((record) => {
+        DATA.forEach((record) => {
             if(parseInt(record.age) >= lowerAge && parseInt(record.age) <= upperAge && record.item == item){
                 itemCountMap[item] = itemCountMap[item] + parseInt(record.quantity);
             }
@@ -217,13 +236,13 @@ function getTopTenItemsByAgeRange(data, lowerAge, upperAge){
     //console.log();
 }
 
-function getTopTenItemsByGender(data, gender){
+function getTopTenItemsByGender(gender){
     let itemCountMap = {};
     ITEMS.forEach((item) => {
         itemCountMap[item] = 0;
     });
     Object.keys(itemCountMap).forEach((item) => {
-        data.forEach((record) => {
+        DATA.forEach((record) => {
             if(record.gender == gender && record.item == item){
                 itemCountMap[item] = itemCountMap[item] + parseInt(record.quantity);
             }
@@ -513,6 +532,52 @@ function getSalesPerQuarter(year){
     drawDonutChartMoney({data: quarterMap, selector: "#container-sales-by-quarter svg"});
     console.log();
 }
+
+function getTopItemByCategory(category){
+    let itemCountMap = {};
+    ITEMS.forEach((item) => {
+        itemCountMap[item] = 0;
+    });
+    Object.keys(itemCountMap).forEach((item) => {
+        DATA.forEach((record) => {
+            if(record.category == category && record.item == item){
+                itemCountMap[item] = itemCountMap[item] + parseInt(record.quantity);
+            }
+        });
+    });
+    let nonZeroItemZCountMap = {};
+    Object.keys(itemCountMap).forEach((item) => {
+        if(itemCountMap[item] > 0){
+            nonZeroItemZCountMap[item] = itemCountMap[item];
+        }
+    });
+
+    itemCountMap = nonZeroItemZCountMap;
+
+    let countValues = [];
+    for(let itemName in itemCountMap){
+        countValues.push(itemCountMap[itemName]);
+    }
+    countValues.sort((a, b) => b - a);//sort the counts in descending order
+    let mostPopular = extractTopNProperties(itemCountMap,countValues,1);
+    let leastPopular = extractLastNProperties(itemCountMap, countValues, 1);
+
+    const mostPopularOptions = {
+        format: 'd',
+        yLabel: 'Quantity',
+        title: 'Most Popular Item',
+    };
+    const leastPopularOptions = {
+        format: 'd',
+        yLabel: 'Quantity',
+        title: 'Least Popular Item',
+    };
+    let colour = '#062029';
+    drawBarChart({data: mostPopular, selector: "#container-top-item-by-category svg", option: mostPopularOptions, colour: colour});
+    drawBarChart({data: leastPopular, selector: "#container-least-item-by-category svg", option: leastPopularOptions, colour: colour});
+    //console.log();
+}
+
 function isDateWithinQuarter(date, quarter){
     let month = parseInt(date.split("-")[1]);
     if((month >= 1 && month < 4 && quarter == 1) || (month >= 4 && month < 7 && quarter == 2) || (month >= 7 && month < 10 && quarter == 3) ||
@@ -889,136 +954,4 @@ const drawDonutChartMoney = ({ data, selector }) => {
                 .attr('fill-opacity', 0.9)
                 .text((d) => currencyFormatter.format(d.data.value))
         );
-};
-
-const drawLineChart = ({ data, selector, option }) => {
-    $(selector).innerHTML = '';
-
-    const margin = { top: 80, right: 20, bottom: 20, left: 60 },
-        width = $(selector).width() - margin.left - margin.right,
-        height = $(selector).height() - margin.top - margin.bottom;
-
-    const svg = d3.select(selector).attr('viewBox', [0, 0, width, height]);
-
-    const line = d3
-        .line()
-        .defined((d) => !isNaN(d.value))
-        .x((d) => x(d.label))
-        .y((d) => y(d.value));
-
-    const x = d3
-        .scaleUtc()
-        .domain(d3.extent(data, (d) => d.label))
-        .range([margin.left, width - margin.right]);
-    const y = d3
-        .scaleLinear()
-        .domain([0, d3.max(data, (d) => d.value)])
-        .nice()
-        .range([height - margin.bottom, margin.top]);
-
-    const xAxis = (g) =>
-        g.attr('transform', `translate(0,${height - margin.bottom})`).call(
-            d3
-                .axisBottom(x)
-                .ticks(width / 80)
-                .tickSizeOuter(0)
-        );
-    const yAxis = (g) =>
-        g
-            .attr('transform', `translate(${margin.left},0)`)
-            .call(d3.axisLeft(y))
-            .call((g) =>
-                g
-                    .select('.tick:last-of-type text')
-                    .clone()
-                    .attr('x', -20)
-                    .attr('y', -20)
-                    .attr('text-anchor', 'start')
-                    .attr('font-weight', 'bold')
-                    .attr('fill', 'currentColor')
-                    .text(option.yLabel)
-            );
-
-    svg.append('g').call(xAxis);
-    svg.append('g').call(yAxis);
-    svg
-        .append('path')
-        .datum(data)
-        .attr('fill', 'none')
-        .attr('stroke', '#80cbc4')
-        .attr('stroke-width', 1.5)
-        .attr('stroke-linejoin', 'round')
-        .attr('stroke-linecap', 'round')
-        .attr('d', line);
-    svg
-        .append('text')
-        .attr('class', 'title')
-        .attr('x', width / 2)
-        .attr('y', margin.top / 4)
-        .attr('text-anchor', 'middle')
-        .text(option.title);
-};
-
-const drawColumnChart = ({ data, selector, option }) => {
-    $(selector).html("");
-
-    const margin = { top: 80, right: 20, bottom: 20, left: 60 },
-        width = $(selector).width() - margin.left - margin.right,
-        height = $(selector).height() - margin.top - margin.bottom;
-
-    const svg = d3.select(selector).attr('viewBox', [0, 0, width, height]);
-
-    const x = d3
-        .scaleBand()
-        .domain(d3.range(data.length))
-        .range([margin.left, width - margin.right])
-        .padding(0.1);
-    const y = d3
-        .scaleLinear()
-        .domain([0, d3.max(data, (d) => d.value)])
-        .nice()
-        .range([height - margin.bottom, margin.top]);
-
-    const xAxis = (g) =>
-        g.attr('transform', `translate(0,${height - margin.bottom})`).call(
-            d3
-                .axisBottom(x)
-                .tickFormat((i) => data[i].label)
-                .tickSizeOuter(0)
-        );
-    const yAxis = (g) =>
-        g
-            .attr('transform', `translate(${margin.left},0)`)
-            .call(d3.axisLeft(y).ticks(null, option.format))
-            .call((g) =>
-                g
-                    .select('.tick:last-of-type text')
-                    .clone()
-                    .attr('x', -20)
-                    .attr('y', -20)
-                    .attr('text-anchor', 'start')
-                    .attr('font-weight', 'bold')
-                    .attr('fill', 'currentColor')
-                    .text(option.yLabel)
-            );
-
-    svg
-        .append('g')
-        .attr('fill', 'steelblue')
-        .selectAll('rect')
-        .data(data)
-        .join('rect')
-        .attr('x', (d, i) => x(i))
-        .attr('y', (d) => y(d.value))
-        .attr('height', (d) => y(0) - y(d.value))
-        .attr('width', x.bandwidth());
-    svg.append('g').call(xAxis);
-    svg.append('g').call(yAxis);
-    svg
-        .append('text')
-        .attr('class', 'title')
-        .attr('x', width / 2)
-        .attr('y', margin.top / 4)
-        .attr('text-anchor', 'middle')
-        .text(option.title);
 };

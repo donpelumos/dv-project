@@ -38,7 +38,7 @@ $(document).ready(function(){
     $("#location-range-selector").change(function(){
         let selectedLocation = $(this).children("option:selected").val();
         if(selectedLocation != "0"){
-            getTopTenItemsByLocation(DATA, selectedLocation);
+            getTopTenItemsByLocation(selectedLocation);
         }
     });
 
@@ -69,7 +69,7 @@ $(document).ready(function(){
     $("#week-range-selector-3").change(function(){
         let selectedWeek = $(this).children("option:selected").val();
         if(selectedWeek != "0"){
-            getTopFiveItemsByWeek(DATA, YEAR_RANGE_SELECTED_3, MONTH_RANGE_SELECTED_3, selectedWeek);
+            getTopFiveItemsByWeek(YEAR_RANGE_SELECTED_3, MONTH_RANGE_SELECTED_3, selectedWeek);
         }
         WEEK_RANGE_SELECTED_3 = selectedWeek;
     });
@@ -88,7 +88,7 @@ $(document).ready(function(){
     $("#month-range-selector-2").change(function(){
         let selectedMonth = $(this).children("option:selected").val();
         if(selectedMonth != "0"){
-            getTopFiveItemsByMonth(DATA, YEAR_RANGE_SELECTED_2, selectedMonth);
+            getTopFiveItemsByMonth(YEAR_RANGE_SELECTED_2, selectedMonth);
         }
         MONTH_RANGE_SELECTED_2 = selectedMonth;
     });
@@ -96,7 +96,7 @@ $(document).ready(function(){
     $("#year-range-selector-1").change(function(){
         let selectedYear = $(this).children("option:selected").val();
         if(selectedYear != "0"){
-            getTopFiveItemsByYear(DATA, selectedYear);
+            getTopFiveItemsByYear(selectedYear);
         }
         YEAR_RANGE_SELECTED_1 = selectedYear;
     });
@@ -115,7 +115,7 @@ $(document).ready(function(){
     $("#holiday-year-selector").change(function(){
         let selectedHolidayYear = $(this).children("option:selected").val();
         if(selectedHolidayYear != "0"){
-            getTopFiveItemsByHoliday(DATA, HOLIDAY_SELECTED, selectedHolidayYear);
+            getTopFiveItemsByHoliday(HOLIDAY_SELECTED, selectedHolidayYear);
         }
     });
 
@@ -136,11 +136,11 @@ $(document).ready(function(){
 });
 
 function readDataFile(data){
-    extractLocations(data);
-    extractItems(data);
-    extractCategories(data);
-    extractGenders(data);
     DATA = data;
+    extractLocations();
+    extractItems();
+    extractCategories();
+    extractGenders();
     getAgeDemographics();
     getGenderDemographics();
     getLocationDemographics();
@@ -148,31 +148,31 @@ function readDataFile(data){
     //drawColumnChart({data: [{label: "boy", value:5}, {label: "girl", value :10}], selector: "#container-top-items-by-age svg", option: option});
     //console.log();
 }
-function extractLocations(data){
-    data.forEach((row) => {
+function extractLocations(){
+    DATA.forEach((row) => {
         if(!LOCATIONS.includes(row.location)){
             LOCATIONS.push(row.location);
         }
     });
     populateLocations();
 }
-function extractItems(data){
-    data.forEach((row) => {
+function extractItems(){
+    DATA.forEach((row) => {
         if(!ITEMS.includes(row.item)){
             ITEMS.push(row.item);
         }
     });
 }
-function extractCategories(data){
-    data.forEach((row) => {
+function extractCategories(){
+    DATA.forEach((row) => {
         if(!CATEGORIES.includes(row.category)){
             CATEGORIES.push(row.category);
         }
     });
     populateCategories();
 }
-function extractGenders(data){
-    data.forEach((row) => {
+function extractGenders(){
+    DATA.forEach((row) => {
         if(!GENDERS.includes(row.gender)){
             GENDERS.push(row.gender);
         }
@@ -231,8 +231,8 @@ function getTopTenItemsByAgeRange(lowerAge, upperAge){
         title: 'Least Popular Items',
     };
     let colour = '#09155b';
-    drawBarChart({data: topTenMostPopular, selector: "#container-top-items-by-age svg", option: mostPopularOptions, colour: colour});
-    drawBarChart({data: topTenLeastPopular, selector: "#container-last-items-by-age svg", option: leastPopularOptions, colour: colour});
+    drawHorizontalBarChart({data: topTenMostPopular, selector: "#container-top-items-by-age svg", option: mostPopularOptions, colour: colour});
+    drawHorizontalBarChart({data: topTenLeastPopular, selector: "#container-last-items-by-age svg", option: leastPopularOptions, colour: colour});
     //console.log();
 }
 
@@ -268,18 +268,18 @@ function getTopTenItemsByGender(gender){
         title: 'Least Popular Items',
     };
     let colour = '#1e7430';
-    drawBarChart({data: topTenMostPopular, selector: "#container-top-items-by-gender svg", option: mostPopularOptions, colour: colour});
-    drawBarChart({data: topTenLeastPopular, selector: "#container-last-items-by-gender svg", option: leastPopularOptions, colour: colour});
+    drawHorizontalBarChart({data: topTenMostPopular, selector: "#container-top-items-by-gender svg", option: mostPopularOptions, colour: colour});
+    drawHorizontalBarChart({data: topTenLeastPopular, selector: "#container-last-items-by-gender svg", option: leastPopularOptions, colour: colour});
     //console.log();
 }
 
-function getTopTenItemsByLocation(data, location){
+function getTopTenItemsByLocation(location){
     let itemCountMap = {};
     ITEMS.forEach((item) => {
         itemCountMap[item] = 0;
     });
     Object.keys(itemCountMap).forEach((item) => {
-        data.forEach((record) => {
+        DATA.forEach((record) => {
             if(record.location == location && record.item == item){
                 itemCountMap[item] = itemCountMap[item] + parseInt(record.quantity);
             }
@@ -305,18 +305,18 @@ function getTopTenItemsByLocation(data, location){
         title: 'Least Popular Items',
     };
     let colour = '#0f6c74';
-    drawBarChart({data: topTenMostPopular, selector: "#container-top-items-by-location svg", option: mostPopularOptions, colour: colour});
-    drawBarChart({data: topTenLeastPopular, selector: "#container-last-items-by-location svg", option: leastPopularOptions, colour: colour});
+    drawHorizontalBarChart({data: topTenMostPopular, selector: "#container-top-items-by-location svg", option: mostPopularOptions, colour: colour});
+    drawHorizontalBarChart({data: topTenLeastPopular, selector: "#container-last-items-by-location svg", option: leastPopularOptions, colour: colour});
     //console.log();
 }
 
-function getTopFiveItemsByYear(data, year){
+function getTopFiveItemsByYear(year){
     let itemCountMap = {};
     ITEMS.forEach((item) => {
         itemCountMap[item] = 0;
     });
     Object.keys(itemCountMap).forEach((item) => {
-        data.forEach((record) => {
+        DATA.forEach((record) => {
             let recordYear = record.date.split("-")[0];
             if(recordYear == year && record.item == item){
                 itemCountMap[item] = itemCountMap[item] + parseInt(record.quantity);
@@ -337,17 +337,17 @@ function getTopFiveItemsByYear(data, year){
         title: 'Most Popular Items By Year',
     };
     let colour = '#17742c';
-    drawBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-year svg", option: mostPopularOptions, colour: colour});
+    drawHorizontalBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-year svg", option: mostPopularOptions, colour: colour});
     //console.log();
 }
 
-function getTopFiveItemsByMonth(data, year, month){
+function getTopFiveItemsByMonth(year, month){
     let itemCountMap = {};
     ITEMS.forEach((item) => {
         itemCountMap[item] = 0;
     });
     Object.keys(itemCountMap).forEach((item) => {
-        data.forEach((record) => {
+        DATA.forEach((record) => {
             let recordYear = record.date.split("-")[0];
             let recordMonth = record.date.split("-")[1];
             if(recordYear == year && recordMonth == month && record.item == item){
@@ -369,17 +369,17 @@ function getTopFiveItemsByMonth(data, year, month){
         title: 'Most Popular Items By Month',
     };
     let colour = '#70742f';
-    drawBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-month svg", option: mostPopularOptions, colour: colour});
+    drawHorizontalBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-month svg", option: mostPopularOptions, colour: colour});
     //console.log();
 }
 
-function getTopFiveItemsByWeek(data, year, month, week){
+function getTopFiveItemsByWeek(year, month, week){
     let itemCountMap = {};
     ITEMS.forEach((item) => {
         itemCountMap[item] = 0;
     });
     Object.keys(itemCountMap).forEach((item) => {
-        data.forEach((record) => {
+        DATA.forEach((record) => {
             let recordYear = record.date.split("-")[0];
             let recordMonth = record.date.split("-")[1];
             let recordWeek = getWeekFromDay(record.date.split("-")[2]);
@@ -402,17 +402,17 @@ function getTopFiveItemsByWeek(data, year, month, week){
         title: 'Most Popular Items By Week',
     };
     let colour = '#744743';
-    drawBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-week svg", option: mostPopularOptions, colour: colour});
+    drawHorizontalBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-week svg", option: mostPopularOptions, colour: colour});
     //console.log();
 }
 
-function getTopFiveItemsByHoliday(data, holiday, holidayYear){
+function getTopFiveItemsByHoliday(holiday, holidayYear){
     let itemCountMap = {};
     ITEMS.forEach((item) => {
         itemCountMap[item] = 0;
     });
     Object.keys(itemCountMap).forEach((item) => {
-        data.forEach((record) => {
+        DATA.forEach((record) => {
             let recordDate = record.date;
             let recordYear = record.date.split("-")[0];
             let isValidHoliday = isHolidayValid(recordDate, holiday);
@@ -435,7 +435,7 @@ function getTopFiveItemsByHoliday(data, holiday, holidayYear){
         title: 'Most Popular Items By Holiday',
     };
     let colour = '#747474';
-    drawBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-holiday svg", option: mostPopularOptions, colour: colour});
+    drawHorizontalBarChart({data: topFiveMostPopular, selector: "#container-top-items-by-holiday svg", option: mostPopularOptions, colour: colour});
     //console.log();
 }
 
@@ -511,7 +511,7 @@ function getSalesPerYear(){
         title: 'Sales Per Annum',
     };
     let colour = '#5b141f';
-    drawBarChartMoney({data: salesMap, selector: "#container-sales-by-year svg", option: salesOptions, colour: colour});
+    drawHorizontalBarChartMoney({data: salesMap, selector: "#container-sales-by-year svg", option: salesOptions, colour: colour});
     console.log();
 }
 
@@ -573,8 +573,8 @@ function getTopItemByCategory(category){
         title: 'Least Popular Item',
     };
     let colour = '#062029';
-    drawBarChart({data: mostPopular, selector: "#container-top-item-by-category svg", option: mostPopularOptions, colour: colour});
-    drawBarChart({data: leastPopular, selector: "#container-least-item-by-category svg", option: leastPopularOptions, colour: colour});
+    drawHorizontalBarChart({data: mostPopular, selector: "#container-top-item-by-category svg", option: mostPopularOptions, colour: colour});
+    drawHorizontalBarChart({data: leastPopular, selector: "#container-least-item-by-category svg", option: leastPopularOptions, colour: colour});
     //console.log();
 }
 
@@ -661,7 +661,7 @@ function extractLastNProperties(objectMap, sortedValues, topN){
     return lastNItems;
 }
 
-const drawBarChart = ({ data, selector, option , colour}) => {
+const drawHorizontalBarChart = ({ data, selector, option , colour}) => {
     $(selector).html("");
 
     const barHeight = 25;
@@ -743,7 +743,7 @@ const drawBarChart = ({ data, selector, option , colour}) => {
         .text(option.title);
 };
 
-const drawBarChartMoney = ({ data, selector, option , colour}) => {
+const drawHorizontalBarChartMoney = ({ data, selector, option , colour}) => {
     $(selector).html("");
 
     const barHeight = 25;
@@ -943,7 +943,7 @@ const drawDonutChartMoney = ({ data, selector }) => {
                 .attr('y', '-0.4em')
                 .attr('font-weight', 'bold')
                 .attr('fill-opacity', 0.9)
-                .text((d) => d.data.label)
+                .text((d) => "Q"+d.data.label)
         )
         .call((text) =>
             text
